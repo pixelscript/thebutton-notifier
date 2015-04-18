@@ -4,6 +4,18 @@ var http = require('http');
 
 requestRedditPage();
 
+var orangeInterval;
+var orangeInterval2;
+function makeOrange() {
+	orangeInterval = setInterval(function(val){
+		notifier.color('RED');
+		orangeInterval2 = setTimeout(function(){
+			notifier.color('YELLOW');
+		},1);
+	},2);
+}
+
+
 function requestRedditPage(){
 	var options = {
 		hostname:"www.reddit.com",
@@ -59,16 +71,37 @@ function getSocketURL(content) {
 		}
 	}
 }
-
+var currentColour;
 function listenToWebsocket(url) {
 	var ws = new WebSocket(url);
 
 	ws.on('message', function(data, flags) {
 		// parse response
 		var data = JSON.parse(data);
-		// set colour
-		notifier.color(whatColourAmI(data.payload.seconds_left));
+		// get colour
+		var colour = whatColourAmI(data.payload.seconds_left);
+		if(currentColour===colour){
+			return;
+		}
+		currentColour = colour;
+		setColour(colour);
+		
 	});
+}
+
+function setColour(colour) {
+	console.log(colour);
+	// stop orange making
+	if(orangeInterval){
+		clearInterval(orangeInterval);
+		clearInterval(orangeInterval2);
+	}
+	// set colour
+	if(colour == 'ORANGE'){
+		makeOrange();
+	} else {
+		notifier.color(colour);
+	}
 }
 
 
